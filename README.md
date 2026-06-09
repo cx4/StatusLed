@@ -18,9 +18,12 @@ StatusLed 是一个面向编程助手的状态提示灯项目。它把 Codex、C
 
 视频演示：
 
-- [Demo.MOV](../bak/images/Demo.MOV)
+<video controls width="640">
+  <source src="images/Demo.MOV" type="video/mp4">
+  您的浏览器不支持 video 标签。
+</video>
 
-当前视频文件位于项目目录外的 `bak/images/Demo.MOV`。如果要让 GitHub 仓库页面稳定展示，建议把视频复制到 `pc_esp32_control/images/` 后改用 `images/Demo.MOV`。
+当前视频文件位于 `pc_esp32_control/images/Demo.MOV`，README 使用相对路径 `images/Demo.MOV` 展示。
 
 ## 目录
 
