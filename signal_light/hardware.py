@@ -317,9 +317,12 @@ def _traffic_to_rgb(
     color_order: str = "rbg",
 ) -> list[int]:
     master = _clamp_float(master_brightness)
-    red_level = max(_clamp_float(red), _clamp_float(yellow)) * master
-    green_level = max(_clamp_float(green), _clamp_float(yellow)) * master
-    blue_level = 0.0
+    red_input = _clamp_float(red)
+    yellow_input = _clamp_float(yellow)
+    green_input = _clamp_float(green)
+    red_level = max(red_input, yellow_input) * master
+    green_level = max(green_input, yellow_input) * master
+    blue_level = min(red_input, yellow_input, green_input) * master
     levels = {"r": red_level, "g": green_level, "b": blue_level}
     return [int(round(levels[channel] * max_duty)) for channel in color_order]
 

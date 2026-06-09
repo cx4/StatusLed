@@ -59,9 +59,13 @@ def apply_signal(signal: AgentSignal, *, speed: float = 1.0) -> None:
     stop_sleep_worker()
     if signal.repeat:
         if _worker_matches(signal.name):
+            if signal.name == "idle":
+                start_sleep_worker()
             return
         stop_worker()
         start_worker(signal.name, speed=speed)
+        if signal.name == "idle":
+            start_sleep_worker()
         return
 
     stop_worker()
@@ -75,9 +79,13 @@ def apply_signal_now(signal: AgentSignal, *, speed: float = 1.0) -> None:
     stop_sleep_worker()
     if signal.repeat:
         if _worker_matches(signal.name):
+            if signal.name == "idle":
+                start_sleep_worker()
             return
         stop_worker()
         start_worker(signal.name, speed=speed)
+        if signal.name == "idle":
+            start_sleep_worker()
         return
 
     stop_worker()

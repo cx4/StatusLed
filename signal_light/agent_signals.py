@@ -138,13 +138,22 @@ def _work_cycle() -> tuple[Frame, ...]:
     )
 
 
+def _idle_strobe() -> tuple[Frame, ...]:
+    return (
+        Frame(green=True, yellow=True, red=True, seconds=0.05),
+        Frame(seconds=0.08),
+        Frame(green=True, yellow=True, red=True, seconds=0.05),
+        Frame(seconds=1.20),
+    )
+
+
 SIGNALS: dict[str, AgentSignal] = {
     "idle": AgentSignal(
         name="idle",
         summary="Agent 空闲。",
         attention="不需要关注。",
-        frames=_state(green=True)[0],
-        leave_on=_state(green=True)[1],
+        frames=_idle_strobe(),
+        repeat=True,
     ),
     "thinking": AgentSignal(
         name="thinking",

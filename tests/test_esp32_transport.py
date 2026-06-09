@@ -5,6 +5,7 @@ def test_traffic_light_colors_map_to_esp32_rgb() -> None:
     assert _traffic_to_rgb(green=1, yellow=0, red=0, max_duty=1023, master_brightness=1) == [0, 0, 1023]
     assert _traffic_to_rgb(green=0, yellow=1, red=0, max_duty=1023, master_brightness=1) == [1023, 0, 1023]
     assert _traffic_to_rgb(green=0, yellow=0, red=1, max_duty=1023, master_brightness=1) == [1023, 0, 0]
+    assert _traffic_to_rgb(green=1, yellow=1, red=1, max_duty=1023, master_brightness=1) == [1023, 1023, 1023]
 
 
 def test_traffic_light_brightness_scales_esp32_rgb() -> None:

@@ -28,13 +28,20 @@ class RecordingLight:
         self.write()
 
 
-def test_idle_signal_leaves_green_on() -> None:
+def test_idle_signal_uses_white_aircraft_strobe_pattern() -> None:
     light = RecordingLight()
 
-    SIGNALS["idle"].play(light, speed=0.05)
+    SIGNALS["idle"].play(light, speed=0.05, cycles=1)
 
-    assert SIGNALS["idle"].repeat is False
-    assert light.states[-1] == (True, False, False)
+    assert SIGNALS["idle"].repeat is True
+    assert [frame.seconds for frame in SIGNALS["idle"].frames] == [0.05, 0.08, 0.05, 1.20]
+    assert light.states[:4] == [
+        (True, True, True),
+        (False, False, False),
+        (True, True, True),
+        (False, False, False),
+    ]
+    assert light.states[-1] == (False, False, False)
 
 
 def test_working_signal_uses_soft_green_pulse() -> None:
@@ -361,15 +368,18 @@ def test_session_end_notice_does_not_cover_permission_alert(monkeypatch) -> None
     assert notices == []
 
 
-def test_apply_signal_stops_in_flight_session_end_notice(monkeypatch) -> None:
+def test_apply_idle_signal_stops_in_flight_session_end_notice(monkeypatch) -> None:
     calls: list[str] = []
     monkeypatch.setattr(runtime, "stop_notice_worker", lambda: calls.append("stop-notice"))
+    monkeypatch.setattr(runtime, "stop_sleep_worker", lambda: calls.append("stop-sleep"))
+    monkeypatch.setattr(runtime, "_worker_matches", lambda _signal_name: False)
     monkeypatch.setattr(runtime, "stop_worker", lambda: calls.append("stop-worker"))
-    monkeypatch.setattr(runtime, "_play_with_retries", lambda signal, speed=1.0: calls.append(signal.name))
+    monkeypatch.setattr(runtime, "start_worker", lambda signal_name, speed=1.0: calls.append(f"start:{signal_name}"))
+    monkeypatch.setattr(runtime, "start_sleep_worker", lambda: calls.append("start-sleep"))
 
     runtime.apply_signal(SIGNALS["idle"])
 
-    assert calls == ["stop-notice", "stop-worker", "idle"]
+    assert calls == ["stop-notice", "stop-sleep", "stop-worker", "start:idle", "start-sleep"]
 
 
 def test_apply_repeating_signal_stops_in_flight_session_end_notice(monkeypatch) -> None:
@@ -836,18 +846,33 @@ def test_session_turn_end_does_not_directly_start_sleep_worker(tmp_path, monkeyp
 
 
 def test_idle_signal_directly_starts_sleep_worker(monkeypatch) -> None:
-    played: list[str] = []
+    started: list[str] = []
     sleep_started: list[bool] = []
     monkeypatch.setattr(runtime, "stop_notice_worker", lambda: None)
     monkeypatch.setattr(runtime, "stop_sleep_worker", lambda: None)
+    monkeypatch.setattr(runtime, "_worker_matches", lambda _signal_name: False)
     monkeypatch.setattr(runtime, "stop_worker", lambda: None)
-    monkeypatch.setattr(runtime, "_play_with_retries", lambda signal, speed=1.0: played.append(signal.name))
+    monkeypatch.setattr(runtime, "start_worker", lambda signal_name, speed=1.0: started.append(signal_name))
     monkeypatch.setattr(runtime, "start_sleep_worker", lambda: sleep_started.append(True))
 
     runtime.apply_signal(SIGNALS["idle"])
 
-    assert played == ["idle"]
+    assert started == ["idle"]
     assert sleep_started == [True]
+
+
+def test_idle_signal_restarts_sleep_worker_when_worker_already_running(monkeypatch) -> None:
+    calls: list[str] = []
+    monkeypatch.setattr(runtime, "stop_notice_worker", lambda: calls.append("stop-notice"))
+    monkeypatch.setattr(runtime, "stop_sleep_worker", lambda: calls.append("stop-sleep"))
+    monkeypatch.setattr(runtime, "_worker_matches", lambda _signal_name: True)
+    monkeypatch.setattr(runtime, "stop_worker", lambda: calls.append("stop-worker"))
+    monkeypatch.setattr(runtime, "start_worker", lambda signal_name, speed=1.0: calls.append(f"start:{signal_name}"))
+    monkeypatch.setattr(runtime, "start_sleep_worker", lambda: calls.append("start-sleep"))
+
+    runtime.apply_signal(SIGNALS["idle"])
+
+    assert calls == ["stop-notice", "stop-sleep", "start-sleep"]
 
 
 def test_non_idle_signal_does_not_start_sleep_worker(monkeypatch) -> None:
