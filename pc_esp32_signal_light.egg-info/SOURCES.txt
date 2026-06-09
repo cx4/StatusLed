@@ -1,3 +1,4 @@
+LICENSE
 README.md
 pyproject.toml
 pc_esp32_signal_light.egg-info/PKG-INFO
