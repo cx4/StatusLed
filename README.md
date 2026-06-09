@@ -16,14 +16,11 @@ StatusLed 是一个面向编程助手的状态提示灯项目。它把 Codex、C
 | --- | --- | --- |
 | <img src="images/esp32mini.jpg" alt="ESP32-C3 Super Mini" width="220"> | <img src="images/esp32c3mini.png" alt="ESP32-C3 Super Mini board" width="220"> | <img src="images/usbconnect.png" alt="ESP32-C3 USB connection" width="220"> |
 
-视频演示：
+GIF 演示：
 
-<video controls width="640">
-  <source src="images/Demo.MOV" type="video/mp4">
-  您的浏览器不支持 video 标签。
-</video>
+<img src="images/demo.gif" alt="StatusLed demo" width="640">
 
-当前视频文件位于 `pc_esp32_control/images/Demo.MOV`，README 使用相对路径 `images/Demo.MOV` 展示。
+当前 GIF 文件位于 `pc_esp32_control/images/demo.gif`，README 使用相对路径 `images/demo.gif` 展示。
 
 ## 赞赏与交流
 
