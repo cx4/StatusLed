@@ -2,7 +2,7 @@
 
 本文说明如何在 Windows 原生环境中，把 Codex CLI 和 Claude Code CLI 的 hook 接到 `pc_esp32_control` 的 ESP32-C3 信号灯控制器。
 
-`pc_esp32_control` 继承了 `pc_control` 的灯语和 hook 事件映射，但硬件出口以本项目实现为准：Windows 上推荐使用 pip 安装后的 console script，即 `signal-light.exe`、`codex-signal-hook.exe`、`claude-code-signal-hook.exe`。仓库 `scripts/` 下的 `codex-signal-hook`、`claude-code-signal-hook` 和 `install-hooks` 是 bash 包装脚本，更适合 macOS、Linux、Git Bash 或 WSL，不建议在原生 Windows 的 agent 配置中直接使用。
+`pc_esp32_control` 的灯语、hook 事件映射和硬件出口都以本项目实现为准：Windows 上推荐使用 pip 安装后的 console script，即 `signal-light.exe`、`codex-signal-hook.exe`、`claude-code-signal-hook.exe`。仓库 `scripts/` 下的 `codex-signal-hook`、`claude-code-signal-hook` 和 `install-hooks` 是 bash 包装脚本，更适合 macOS、Linux、Git Bash 或 WSL，不建议在原生 Windows 的 agent 配置中直接使用。
 
 ## 1. 安装 PC 端工具
 
@@ -460,14 +460,14 @@ signal-light play off
 | Codex | `%USERPROFILE%\.codex\hooks.json` |
 | Claude Code | `%USERPROFILE%\.claude\settings.json` |
 
-但当前安装器生成的命令来自：
+当前安装器写入的命令使用仓库内跨平台包装脚本：
 
 ```text
 pc_esp32_control\scripts\codex-signal-hook
 pc_esp32_control\scripts\claude-code-signal-hook
 ```
 
-这两个文件是 bash 脚本。原生 Windows 推荐按本文手工写 `.venv\Scripts\*.exe` 路径；只有在 Git Bash、MSYS2、WSL 或其他能执行这些脚本的环境中，才建议使用：
+这两个文件是 bash 脚本。原生 Windows 推荐按本文手工写 `.venv\Scripts\*.exe` 绝对路径；只有在 Git Bash、MSYS2、WSL 或其他能执行这些脚本的环境中，才建议使用自动安装器直接写入 hook 配置：
 
 ```powershell
 signal-light install-hooks --all -y

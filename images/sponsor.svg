@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-labelledby="title desc">
+  <title id="title">StatusLed 赞赏与交流</title>
+  <desc id="desc">如果本项目对你有帮助可以赞赏一下，如果需要代做可以加微信或者加群。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="0.55" stop-color="#eef6f3"/>
+      <stop offset="1" stop-color="#fff7e6"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1f2937" flood-opacity="0.14"/>
+    </filter>
+    <clipPath id="wechatClip">
+      <rect x="0" y="0" width="340" height="426" rx="20"/>
+    </clipPath>
+    <clipPath id="rewardClip">
+      <rect x="0" y="0" width="390" height="390" rx="24"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1280" height="760" fill="url(#bg)"/>
+  <path d="M0 620 C180 580 300 690 495 650 C690 610 770 540 945 585 C1100 625 1170 680 1280 630 L1280 760 L0 760 Z" fill="#e7bd3d" opacity="0.95"/>
+  <path d="M0 652 C210 610 335 705 555 672 C770 640 840 575 1022 610 C1152 635 1215 690 1280 662 L1280 760 L0 760 Z" fill="#18a999" opacity="0.22"/>
+
+  <text x="640" y="82" text-anchor="middle" font-family="Segoe UI, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="48" font-weight="700" fill="#14213d">StatusLed 项目支持</text>
+  <text x="640" y="128" text-anchor="middle" font-family="Segoe UI, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="22" fill="#475569">如果本项目对你有帮助，可以赞赏一下；如果需要代做，可以加微信或者加群。</text>
+
+  <g transform="translate(115 160)" filter="url(#shadow)">
+    <rect width="500" height="486" rx="22" fill="#ffffff"/>
+    <rect x="22" y="22" width="456" height="442" rx="16" fill="#f8fafc" stroke="#e2e8f0"/>
+    <image href="IMG_0542.JPG" x="80" y="30" width="340" height="426" preserveAspectRatio="xMidYMid meet" clip-path="url(#wechatClip)"/>
+  </g>
+  <text x="365" y="698" text-anchor="middle" font-family="Segoe UI, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="30" font-weight="700" fill="#14213d">微信 / 加群</text>
+  <text x="365" y="730" text-anchor="middle" font-family="Segoe UI, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="20" fill="#334155">需要代做可以扫码联系</text>
+
+  <g transform="translate(665 160)" filter="url(#shadow)">
+    <rect width="500" height="486" rx="22" fill="#ffffff"/>
+    <rect x="22" y="22" width="456" height="442" rx="16" fill="#f8fafc" stroke="#e2e8f0"/>
+    <image href="IMG_0541.JPG" x="55" y="44" width="390" height="390" preserveAspectRatio="xMidYMid slice" clip-path="url(#rewardClip)"/>
+  </g>
+  <text x="915" y="698" text-anchor="middle" font-family="Segoe UI, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="30" font-weight="700" fill="#14213d">赞赏一下</text>
+  <text x="915" y="730" text-anchor="middle" font-family="Segoe UI, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="20" fill="#334155">你的支持会帮助项目持续维护</text>
+</svg>
