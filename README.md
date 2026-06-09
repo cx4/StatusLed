@@ -1,2 +1,265 @@
 # StatusLed
-vibecoding status led monitor,alert led
+
+StatusLed 是一个面向编程助手的状态提示灯项目。它把 Codex、Claude Code 等编程助手的运行状态映射到实体 RGB LED 上，让你不用一直盯着 IDE 或终端，也能清晰、醒目地了解当前项目正在进行到哪一步：空闲、工作中、等待授权、需要关注、阻塞或已完成。
+
+硬件使用低成本但性能很强的 `ESP32-C3 Super Mini + RGB LED`。ESP32-C3 体积小、带 Wi-Fi 和 BLE，后续也方便扩展屏幕显示、声音提醒、语音播报或更多传感器能力。
+
+## 效果展示
+
+将项目图片和视频放在 `images/` 目录后，GitHub README 会使用相对路径直接展示。上一版 README 使用的图片文件名是：
+
+- `images/esp32mini.jpg`
+- `images/esp32c3mini.png`
+- `images/usbconnect.png`
+
+| ESP32-C3 Super Mini | 开发板示意 | USB 数据线连接 |
+| --- | --- | --- |
+| <img src="images/esp32mini.jpg" alt="ESP32-C3 Super Mini" width="220"> | <img src="images/esp32c3mini.png" alt="ESP32-C3 Super Mini board" width="220"> | <img src="images/usbconnect.png" alt="ESP32-C3 USB connection" width="220"> |
+
+如果后续加入视频演示，建议放在 `images/` 目录，并在这里补充链接，例如 `images/demo.mp4` 或 `images/demo.gif`。
+
+## 目录
+
+- [状态提示](#状态提示)
+- [功能概览](#功能概览)
+- [硬件组成](#硬件组成)
+- [快速开始](#快速开始)
+- [通信方式](#通信方式)
+- [IDE 与 Hook 支持](#ide-与-hook-支持)
+- [常用环境变量](#常用环境变量)
+- [验证与测试](#验证与测试)
+- [更多文档](#更多文档)
+
+## 状态提示
+
+StatusLed 使用红、黄、绿三色灯效表达编程助手的工作状态。常见状态如下：
+
+| 状态 | 灯效 | 含义 | 你需要做什么 |
+| --- | --- | --- | --- |
+| `idle` | 绿色常亮 | 编程助手空闲或待命 | 无需处理 |
+| `thinking` | 红黄绿循环柔和脉冲 | 已收到任务，正在思考或规划 | 等待即可 |
+| `working` | 绿色柔和脉冲 | 正在读写文件、运行命令或测试 | 等待即可 |
+| `attention` | 黄色闪烁 | 助手暂停，等待你阅读结果或继续回复 | 查看 IDE/终端 |
+| `permission` | 黄色高频闪烁 | 助手请求授权或需要明确批准 | 立即处理授权 |
+| `blocked` | 红色闪烁 | 遇到失败、阻塞或无法继续 | 查看错误并介入 |
+| `done` | 黄色提醒闪烁 | 当前任务已完成 | 查看最终结果 |
+| `off` | 熄灭 | 手动关闭灯光 | 无需处理 |
+
+## 功能概览
+
+| 能力 | 说明 |
+| --- | --- |
+| 编程助手状态灯 | 把 Codex、Claude Code 的 hook 事件转换为醒目的 RGB LED 状态 |
+| 项目进度提示 | 用实体灯效区分空闲、工作中、等待授权、阻塞和完成状态 |
+| 多通信后端 | 支持局域网 Wi-Fi、蓝牙 BLE、USB 数据线串口通信 |
+| 会话状态聚合 | 多个 hook 事件进入同一套状态管理，避免灯效互相冲突 |
+| Dry-run 调试 | 没有硬件时可打印灯态，便于验证 hook 映射 |
+| 可扩展硬件 | ESP32-C3 可继续扩展屏幕、蜂鸣器、扬声器、语音模块等功能 |
+
+## 硬件组成
+
+| 元件 | 用途 |
+| --- | --- |
+| ESP32-C3 Super Mini | 主控，负责接收 PC 端命令并控制 RGB LED |
+| RGB LED | 展示编程助手状态 |
+| USB 数据线 | 供电、烧录固件，也可作为串口通信链路 |
+| Wi-Fi 局域网 | 通过 HTTP 接收状态控制命令 |
+| BLE | 通过 Nordic UART Service 接收状态控制命令 |
+
+默认颜色顺序是 `rbg`，用于匹配本项目这套 RGB LED 实物通道。如果你的接线或固件使用标准 RGB 顺序，可以设置 `SIGNAL_LIGHT_ESP32_COLOR_ORDER=rgb`。
+
+| 灯语 | ESP32-C3 color |
+| --- | --- |
+| `green` | `[0, 0, 1023]` |
+| `yellow` | `[1023, 0, 1023]` |
+| `red` | `[1023, 0, 0]` |
+| `off` | `power=false` |
+
+## 快速开始
+
+### 1. 安装 PC 端工具
+
+```powershell
+cd pc_esp32_control
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e .
+```
+
+按实际通信方式安装可选依赖：
+
+```powershell
+# USB 数据线串口通信
+pip install -e ".[serial]"
+
+# 蓝牙 BLE 通信
+pip install -e ".[ble]"
+
+# 串口 + BLE
+pip install -e ".[all]"
+```
+
+局域网 HTTP 后端只使用 Python 标准库，不需要额外依赖。
+
+### 2. 确认可执行入口
+
+```powershell
+Get-Command signal-light
+Get-Command codex-signal-hook
+Get-Command claude-code-signal-hook
+```
+
+### 3. 先用 dry-run 预览状态
+
+```powershell
+signal-light list
+signal-light play working --dry-run --speed 0.05
+signal-light codex-hook PermissionRequest --dry-run
+signal-light claude-code-hook --event Notification --dry-run
+```
+
+## 通信方式
+
+StatusLed 支持三种 PC 到 ESP32-C3 的通信方式。三种方式共用同一套状态命令协议，按使用场景选择即可。
+
+| 通信方式 | 后端参数 | 适合场景 | 依赖 |
+| --- | --- | --- | --- |
+| 局域网 Wi-Fi | `http` | 固定摆放、连续动画、延迟稳定 | 无额外 Python 依赖 |
+| USB 数据线串口 | `serial` | 调试、开发、USB 供电直连 | `pyserial` |
+| 蓝牙 BLE | `ble` | 无线连接、不方便接入同一局域网 | `bleak` |
+
+### 局域网 Wi-Fi
+
+设备处于 AP 模式时通常可用 `http://192.168.4.1`；进入 STA 后换成路由器分配的 IP。
+
+```powershell
+signal-light test --backend http --http-url http://192.168.4.1
+signal-light play working --backend http --http-url http://192.168.4.1
+signal-light play idle --backend http --http-url http://192.168.4.1
+```
+
+也可以通过环境变量配置，hook 和后台 worker 会继承这些设置：
+
+```powershell
+$env:SIGNAL_LIGHT_BACKEND = "http"
+$env:SIGNAL_LIGHT_HTTP_URL = "http://192.168.4.1"
+$env:SIGNAL_LIGHT_ESP32_COLOR_ORDER = "rbg"
+
+signal-light play permission
+```
+
+### USB 数据线串口
+
+```powershell
+pip install -e ".[serial]"
+signal-light test --backend serial --serial-port COM5
+signal-light play working --backend serial --serial-port COM5
+```
+
+等价环境变量：
+
+```powershell
+$env:SIGNAL_LIGHT_BACKEND = "serial"
+$env:SIGNAL_LIGHT_SERIAL_PORT = "COM5"
+$env:SIGNAL_LIGHT_SERIAL_BAUD = "115200"
+```
+
+### 蓝牙 BLE
+
+ESP32-C3 端使用 Nordic UART Service，默认设备名是 `rgb-c3`，RX UUID 是 `6E400002-B5A3-F393-E0A9-E50E24DCCA9E`。
+
+```powershell
+pip install -e ".[ble]"
+signal-light test --backend ble --ble-name rgb-c3
+```
+
+如果系统已知道 BLE 地址，可以跳过按名称扫描：
+
+```powershell
+signal-light test --backend ble --ble-address AA:BB:CC:DD:EE:FF
+```
+
+如果 `esp32-c3/config.py` 中 `BLE_REQUIRE_PAIRING = True`，需要先在操作系统里完成配对。连续动画更推荐使用局域网 Wi-Fi 或 USB 串口，延迟更稳定。
+
+## IDE 与 Hook 支持
+
+StatusLed 通过 IDE/CLI 的 hook 事件获取编程助手状态。目前支持：
+
+| IDE/CLI | 本项目入口 | Hook 配置文件 | 官方 Hook 文档 |
+| --- | --- | --- | --- |
+| Codex | `codex-signal-hook` | `%USERPROFILE%\.codex\hooks.json` | [Codex hooks](https://developers.openai.com/codex/hooks) |
+| Claude Code | `claude-code-signal-hook` | `%USERPROFILE%\.claude\settings.json` | [Claude Code hooks](https://code.claude.com/docs/en/hooks) |
+
+### 自动安装
+
+```powershell
+signal-light install-hooks --all --dry-run
+signal-light install-hooks --all -y
+```
+
+### 手动验证 hook 映射
+
+```powershell
+signal-light codex-hook PermissionRequest --dry-run
+signal-light codex-hook Stop --dry-run
+signal-light claude-code-hook --event Notification --dry-run
+signal-light claude-code-hook --event PreToolUse --dry-run
+```
+
+### macOS/Linux 脚本入口
+
+```bash
+./scripts/signal-light play working
+./scripts/install-hooks --all -y
+```
+
+Windows 上推荐使用安装后的 console script：`signal-light`、`codex-signal-hook`、`claude-code-signal-hook`。
+
+## 常用环境变量
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `SIGNAL_LIGHT_BACKEND` | `http` | 通信后端，可选 `http`、`serial`、`ble` |
+| `SIGNAL_LIGHT_HTTP_URL` | `http://192.168.4.1` | ESP32-C3 HTTP base URL |
+| `SIGNAL_LIGHT_SERIAL_PORT` | 空 | 串口名，如 `COM5` 或 `/dev/ttyACM0` |
+| `SIGNAL_LIGHT_SERIAL_BAUD` | `115200` | 串口波特率 |
+| `SIGNAL_LIGHT_BLE_NAME` | `rgb-c3` | BLE 设备名 |
+| `SIGNAL_LIGHT_BLE_ADDRESS` | 空 | BLE 地址，设置后不按名称扫描 |
+| `SIGNAL_LIGHT_ESP32_BRIGHTNESS` | `1.0` | ESP32-C3 总亮度倍率 |
+| `SIGNAL_LIGHT_ESP32_COLOR_ORDER` | `rbg` | ESP32-C3 颜色数组顺序，标准 RGB 设备可设为 `rgb` |
+| `SIGNAL_LIGHT_MAX_DUTY` | `1023` | PWM 最大占空比 |
+| `SIGNAL_LIGHT_TIMEOUT` | `2.0` | 请求超时时间，单位秒 |
+| `SIGNAL_LIGHT_DRY_RUN` | 空 | 设为 `1`、`true`、`yes` 或 `on` 后，hook 只打印灯态 |
+| `SIGNAL_LIGHT_STATE_DIR` | 系统临时目录 | hook 聚合状态和 worker pid 文件目录 |
+| `SIGNAL_LIGHT_SESSION_TTL_SECONDS` | `86400` | 会话状态保留时间 |
+| `SIGNAL_LIGHT_IDLE_SLEEP_SECONDS` | `600` | 空闲睡眠状态保留时间 |
+
+## 验证与测试
+
+无硬件验证：
+
+```powershell
+python -m signal_light play working --dry-run --speed 0.05
+python -m signal_light status
+```
+
+硬件链路验证：
+
+```powershell
+signal-light test --backend http --http-url http://192.168.4.1
+signal-light play idle --backend http --http-url http://192.168.4.1
+```
+
+运行测试：
+
+```powershell
+pip install -e ".[dev]"
+pytest -q
+```
+
+## 更多文档
+
+- [Windows 下配置 Codex CLI 和 Claude Code CLI Hook](docs/WINDOWS_HOOKS.md)
+- [灯语和 hook 事件映射](docs/LAMP_LANGUAGE.md)
+- [Codex hooks 官方文档](https://developers.openai.com/codex/hooks)
+- [Claude Code hooks 官方文档](https://code.claude.com/docs/en/hooks)

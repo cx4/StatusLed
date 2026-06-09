@@ -1,0 +1,4 @@
+[console_scripts]
+claude-code-signal-hook = signal_light.claude_code_hook:main
+codex-signal-hook = signal_light.codex_hook:main
+signal-light = signal_light.cli:main

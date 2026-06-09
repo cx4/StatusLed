@@ -1,0 +1,81 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "D:\\PartTime\\2026\\06\\monitor\\pc_esp32_control\\.venv\\Scripts\\codex-signal-hook.exe SessionStart",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "D:\\PartTime\\2026\\06\\monitor\\pc_esp32_control\\.venv\\Scripts\\codex-signal-hook.exe UserPromptSubmit",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "D:\\PartTime\\2026\\06\\monitor\\pc_esp32_control\\.venv\\Scripts\\codex-signal-hook.exe PreToolUse",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "D:\\PartTime\\2026\\06\\monitor\\pc_esp32_control\\.venv\\Scripts\\codex-signal-hook.exe PostToolUse",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "D:\\PartTime\\2026\\06\\monitor\\pc_esp32_control\\.venv\\Scripts\\codex-signal-hook.exe PermissionRequest",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "D:\\PartTime\\2026\\06\\monitor\\pc_esp32_control\\.venv\\Scripts\\codex-signal-hook.exe Stop",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "D:\\PartTime\\2026\\06\\monitor\\pc_esp32_control\\.venv\\Scripts\\codex-signal-hook.exe SessionEnd",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

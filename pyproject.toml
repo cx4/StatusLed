@@ -1,0 +1,44 @@
+[project]
+name = "pc-esp32-signal-light"
+version = "0.1.0"
+description = "PC signal-light controller for ESP32-C3 RGB transports."
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = [
+    "ai-agent",
+    "codex",
+    "claude-code",
+    "esp32-c3",
+    "status-light",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development",
+    "Topic :: System :: Hardware",
+]
+dependencies = []
+
+[project.optional-dependencies]
+serial = ["pyserial>=3.5"]
+ble = ["bleak>=0.22.0"]
+all = [
+    "pyserial>=3.5",
+    "bleak>=0.22.0",
+]
+dev = ["pytest>=8.0.0"]
+
+[project.scripts]
+signal-light = "signal_light.cli:main"
+codex-signal-hook = "signal_light.codex_hook:main"
+claude-code-signal-hook = "signal_light.claude_code_hook:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["signal_light*"]

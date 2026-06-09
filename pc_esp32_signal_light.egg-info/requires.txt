@@ -1,0 +1,13 @@
+
+[all]
+pyserial>=3.5
+bleak>=0.22.0
+
+[ble]
+bleak>=0.22.0
+
+[dev]
+pytest>=8.0.0
+
+[serial]
+pyserial>=3.5

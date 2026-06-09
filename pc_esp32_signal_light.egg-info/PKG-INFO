@@ -1,0 +1,161 @@
+Metadata-Version: 2.4
+Name: pc-esp32-signal-light
+Version: 0.1.0
+Summary: PC signal-light controller for ESP32-C3 RGB transports.
+Keywords: ai-agent,codex,claude-code,esp32-c3,status-light
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Software Development
+Classifier: Topic :: System :: Hardware
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Provides-Extra: serial
+Requires-Dist: pyserial>=3.5; extra == "serial"
+Provides-Extra: ble
+Requires-Dist: bleak>=0.22.0; extra == "ble"
+Provides-Extra: all
+Requires-Dist: pyserial>=3.5; extra == "all"
+Requires-Dist: bleak>=0.22.0; extra == "all"
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+
+# PC ESP32-C3 Signal Light
+
+这个 PC 端项目基于开源 `pc_control` 的灯语、Codex/Claude Code hook 映射和 CLI 形状，使用 ESP32-C3 SuperMini RGB 控制器通信后端。
+
+当前 `esp32-c3` 项目使用 `http`、`serial` 或 `ble` 后端，并发送 `esp32-c3/command_protocol.py` 支持的 JSON 控制命令。
+
+## 安装
+
+```powershell
+cd pc_esp32_control
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e .
+```
+
+按使用的链路安装可选依赖：
+
+```powershell
+pip install -e ".[serial]"
+pip install -e ".[ble]"
+```
+
+HTTP 后端只使用 Python 标准库，不需要额外依赖。
+
+## ESP32-C3 通信
+
+ESP32-C3 端三种通信方式共用同一套命令协议。PC 端会把原灯语的三色状态转换成 ESP32-C3 颜色数组。当前默认颜色顺序是 `rbg`，用于匹配本项目这套 RGB 灯实物通道：
+
+| 灯语 | ESP32-C3 color |
+| --- | --- |
+| green | `[0, 0, 1023]` |
+| yellow | `[1023, 0, 1023]` |
+| red | `[1023, 0, 0]` |
+| off | `power=false` |
+
+如果你的 ESP32-C3 固件和接线使用标准 RGB 顺序，设置 `SIGNAL_LIGHT_ESP32_COLOR_ORDER=rgb` 后 green 会发送 `[0, 1023, 0]`。
+
+### HTTP
+
+设备处于 AP 模式时通常可用 `http://192.168.4.1`；进入 STA 后换成路由器分配的 IP。
+
+```powershell
+signal-light test --backend http --http-url http://192.168.4.1
+signal-light play working --backend http --http-url http://192.168.4.1
+```
+
+也可以用环境变量，hook 和后台 worker 会继承这些配置：
+
+```powershell
+$env:SIGNAL_LIGHT_BACKEND = "http"
+$env:SIGNAL_LIGHT_HTTP_URL = "http://192.168.4.1"
+signal-light play permission
+```
+
+### Serial
+
+```powershell
+pip install -e ".[serial]"
+signal-light test --backend serial --serial-port COM5
+```
+
+等价环境变量：
+
+```powershell
+$env:SIGNAL_LIGHT_BACKEND = "serial"
+$env:SIGNAL_LIGHT_SERIAL_PORT = "COM5"
+$env:SIGNAL_LIGHT_SERIAL_BAUD = "115200"
+```
+
+### BLE
+
+ESP32-C3 端使用 Nordic UART Service，默认设备名 `rgb-c3`，RX UUID 为 `6E400002-B5A3-F393-E0A9-E50E24DCCA9E`。
+
+```powershell
+pip install -e ".[ble]"
+signal-light test --backend ble --ble-name rgb-c3
+```
+
+如果系统已知道 BLE 地址，可以跳过扫描：
+
+```powershell
+signal-light test --backend ble --ble-address AA:BB:CC:DD:EE:FF
+```
+
+注意：如果 `esp32-c3/config.py` 中 `BLE_REQUIRE_PAIRING = True`，需要先在操作系统完成配对。连续动画更推荐 HTTP 或串口，延迟更稳定。
+
+## Hook 入口
+
+灯语和 hook 入口：
+
+```powershell
+signal-light list
+signal-light codex-hook PermissionRequest --dry-run
+signal-light claude-code-hook --dry-run
+```
+
+在 macOS/Linux 上仍可使用复制过来的脚本：
+
+```bash
+./scripts/signal-light play working
+./scripts/install-hooks --all -y
+```
+
+在 Windows 上推荐使用安装后的 console script：`signal-light`、`codex-signal-hook`、`claude-code-signal-hook`。
+
+Windows 下配置 Codex CLI 和 Claude Code CLI hook 的完整步骤见
+[`docs/WINDOWS_HOOKS.md`](docs/WINDOWS_HOOKS.md)。
+
+## 常用环境变量
+
+| 变量 | 说明 |
+| --- | --- |
+| `SIGNAL_LIGHT_BACKEND` | `http`、`serial` 或 `ble`，默认 `http` |
+| `SIGNAL_LIGHT_HTTP_URL` | ESP32-C3 HTTP base URL |
+| `SIGNAL_LIGHT_SERIAL_PORT` | 串口名，如 `COM5` |
+| `SIGNAL_LIGHT_SERIAL_BAUD` | 串口波特率，默认 `115200` |
+| `SIGNAL_LIGHT_BLE_NAME` | BLE 设备名，默认 `rgb-c3` |
+| `SIGNAL_LIGHT_BLE_ADDRESS` | BLE 地址，设置后不按名称扫描 |
+| `SIGNAL_LIGHT_ESP32_BRIGHTNESS` | ESP32-C3 总亮度倍率，默认 `1.0` |
+| `SIGNAL_LIGHT_ESP32_COLOR_ORDER` | ESP32-C3 颜色数组顺序，默认 `rbg`，标准 RGB 设备可设为 `rgb` |
+| `SIGNAL_LIGHT_STATE_DIR` | hook 聚合状态和 worker pid 文件目录 |
+
+## 验证
+
+无硬件验证：
+
+```powershell
+python -m signal_light play working --dry-run --speed 0.05
+python -m signal_light status
+```
+
+运行测试：
+
+```powershell
+pip install -e ".[dev]"
+pytest -q
+```
